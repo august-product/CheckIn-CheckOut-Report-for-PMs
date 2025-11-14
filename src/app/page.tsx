@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -320,11 +321,14 @@ export default function CheckinReportPage() {
     <main className="bg-[#f6f0e6] text-slate-900">
       <nav className="sticky top-0 z-50 border-b border-emerald-900/40 bg-[#26483f] shadow-lg">
         <div className="mx-auto flex max-w-7xl items-center px-6 py-3 text-white">
-          <img
+          <Image
             src="https://cdn.prod.website-files.com/675c4350f0adea479ba8dab7/67608186495a13bdfd03f020_Logo.svg"
             alt="Valeria Logo"
+            width={120}
+            height={24}
             className="h-6 w-auto"
             style={{ filter: "brightness(0) invert(1)" }}
+            priority
           />
         </div>
       </nav>
@@ -439,7 +443,7 @@ export default function CheckinReportPage() {
                       disabled={!canFilterByStatus}
                       className="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green disabled:cursor-not-allowed disabled:opacity-40"
                     />
-                    Hide "In"
+                    Hide &quot;In&quot;
                   </label>
 
                   <label
@@ -454,7 +458,7 @@ export default function CheckinReportPage() {
                       disabled={!canFilterByStatus}
                       className="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green disabled:cursor-not-allowed disabled:opacity-40"
                     />
-                    Hide "Out"
+                    Hide &quot;Out&quot;
                   </label>
 
                   <button
