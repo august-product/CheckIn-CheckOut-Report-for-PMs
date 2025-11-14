@@ -21,15 +21,15 @@ const API_URL = "https://xdti-9vsw-swso.e2.xano.io/api:ejSfrA89:v3.2/reports/che
 const API_TOKEN = process.env.NEXT_PUBLIC_XANO_TOKEN ?? "c2qhHos3PjRegtqqnl0dYkrBY5EELJs1";
 
 const REGIONS = [
-  "Mallorca",
-  "Tuscany",
-  "French Alps",
   "Barcelona",
   "Cotswolds",
+  "French Alps",
   "London",
-  "South of France",
+  "Mallorca",
+  "Paris",
   "Rome",
-  "Paris"
+  "South of France",
+  "Tuscany"
 ];
 
 const HIDDEN_COLUMNS = new Set(["timestamp"]);
@@ -112,12 +112,27 @@ export default function CheckinReportPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [hiddenStatuses, setHiddenStatuses] = useState({ in: false, out: false });
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: null,
     direction: "asc"
   });
   const [page, setPage] = useState(1);
-  const pageSize = 12;
+  const [pageSize, setPageSize] = useState(10);
+
+  const statusKey = useMemo(() => {
+    if (!data[0]) return null;
+    const candidates = ["status", "type", "direction"];
+    const keys = Object.keys(data[0]);
+    return (
+      keys.find((key) => {
+        const value = String(data[0]?.[key] ?? "").toLowerCase();
+        const keyMatch = candidates.some((candidate) => key.toLowerCase().includes(candidate));
+        const valueMatch = value === "in" || value === "out";
+        return keyMatch || valueMatch;
+      }) ?? null
+    );
+  }, [data]);
 
   const headers = useMemo(() => {
     if (!filteredData[0]) return [];
@@ -163,9 +178,40 @@ export default function CheckinReportPage() {
     return sortedData.slice(start, start + pageSize);
   }, [sortedData, page, pageSize]);
 
+  const formatCellValue = useCallback((value: unknown) => {
+    const text = String(value ?? "");
+    if (!text) return "";
+    if (text.trim().toLowerCase() === "homeowner") return "Homeowner";
+    return text;
+  }, []);
+
+  const toggleHiddenStatus = (status: "in" | "out") => {
+    setHiddenStatuses((prev) => ({
+      ...prev,
+      [status]: !prev[status]
+    }));
+  };
+
+  const toggleHideBoth = () => {
+    setHiddenStatuses((prev) => {
+      const nextValue = !(prev.in && prev.out);
+      return { in: nextValue, out: nextValue };
+    });
+  };
+
+  const handlePageSizeChange = (value: number) => {
+    setPageSize(value);
+    setPage(1);
+  };
+
   const fetchReport = useCallback(async () => {
     if (!startDate || !endDate) {
       setError("Please select both start and end dates.");
+      return;
+    }
+
+    if (!region) {
+      setError("Select Region");
       return;
     }
 
@@ -196,7 +242,9 @@ export default function CheckinReportPage() {
       if (!rows.length) setError("No results found.");
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message ?? err.message ?? "Error fetching data.");
+        const message = err.response?.data?.message;
+        const friendlyMessage = message?.includes("Missing param: destination") ? "Select Region" : message;
+        setError(friendlyMessage ?? err.message ?? "Error fetching data.");
       } else {
         setError((err as Error).message);
       }
@@ -237,16 +285,25 @@ export default function CheckinReportPage() {
   };
 
   useEffect(() => {
-    if (!search.trim()) {
-      setFilteredData(data);
-      return;
+    let next = data;
+
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      next = next.filter((row) => JSON.stringify(row).toLowerCase().includes(q));
     }
 
-    const q = search.toLowerCase();
-    const filtered = data.filter((row) => JSON.stringify(row).toLowerCase().includes(q));
-    setFilteredData(filtered);
+    if (statusKey) {
+      next = next.filter((row) => {
+        const value = String(row?.[statusKey] ?? "").toLowerCase();
+        if (hiddenStatuses.in && value === "in") return false;
+        if (hiddenStatuses.out && value === "out") return false;
+        return true;
+      });
+    }
+
+    setFilteredData(next);
     setPage(1);
-  }, [search, data]);
+  }, [search, data, hiddenStatuses, statusKey]);
 
   useEffect(() => {
     if (page > totalPages) {
@@ -256,6 +313,8 @@ export default function CheckinReportPage() {
 
   const canGoBack = page > 1;
   const canGoForward = page < totalPages;
+  const canFilterByStatus = Boolean(statusKey);
+  const hideBothChecked = hiddenStatuses.in && hiddenStatuses.out;
 
   return (
     <main className="bg-[#f6f0e6] text-slate-900">
@@ -281,17 +340,15 @@ export default function CheckinReportPage() {
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-4 md:items-end">
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Region
-              </label>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">Region</label>
               <select
                 value={region}
                 onChange={(event) => setRegion(event.target.value)}
-                className="w-full rounded-md border border-gray-300 p-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
+                className={`w-full rounded-md border border-gray-300 p-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 ${
+                  region ? "text-gray-700" : "text-[#a0a0a0]"
+                }`}
               >
-                <option value="" disabled>
-                  Select region
-                </option>
+                <option value="">Select Region</option>
                 {REGIONS.map((option) => (
                   <option key={option} value={option}>
                     {option}
@@ -300,44 +357,38 @@ export default function CheckinReportPage() {
               </select>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 md:col-span-2 md:grid-cols-2 md:gap-3">
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Start Date
-                </label>
-                <DatePicker
-                  selected={startDate}
-                  onChange={(date) => setStartDate(date)}
-                  selectsStart
-                  startDate={startDate}
-                  endDate={endDate}
-                  dateFormat="dd MMMM yyyy"
-                  className="w-full rounded-md border border-gray-300 p-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
-                />
-              </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">Start Date</label>
+              <DatePicker
+                selected={startDate}
+                onChange={(date) => setStartDate(date)}
+                selectsStart
+                startDate={startDate}
+                endDate={endDate}
+                dateFormat="dd MMMM yyyy"
+                className="w-full rounded-md border border-gray-300 p-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
+              />
+            </div>
 
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  End Date
-                </label>
-                <DatePicker
-                  selected={endDate}
-                  onChange={(date) => setEndDate(date)}
-                  selectsEnd
-                  startDate={startDate}
-                  endDate={endDate}
-                  minDate={startDate ?? undefined}
-                  dateFormat="dd MMMM yyyy"
-                  className="w-full rounded-md border border-gray-300 p-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
-                />
-              </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">End Date</label>
+              <DatePicker
+                selected={endDate}
+                onChange={(date) => setEndDate(date)}
+                selectsEnd
+                startDate={startDate}
+                endDate={endDate}
+                minDate={startDate ?? undefined}
+                dateFormat="dd MMMM yyyy"
+                className="w-full rounded-md border border-gray-300 p-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
+              />
             </div>
 
             <div className="flex md:justify-end">
               <button
                 onClick={fetchReport}
                 disabled={loading}
-                className="mt-2 flex w-full min-w-[320px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-mustard to-amber-400 px-12 py-3 text-center text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 md:mt-0 md:w-auto"
+                className="mt-2 flex w-full min-w-[320px] items-center justify-center gap-2 rounded-xl bg-[#2f7f5f] px-12 py-3 text-center text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#27654c] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 md:mt-0 md:w-auto"
               >
                 <ReportIcon />
                 <span>{loading ? "Loading..." : "Generate Reservation Report"}</span>
@@ -346,40 +397,74 @@ export default function CheckinReportPage() {
           </div>
 
           {data.length > 0 && (
-            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-              <button
-                onClick={exportCSV}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-brand-green/80 bg-brand-green px-5 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-green/90 hover:shadow-lg"
-              >
-                <DownloadIcon />
-                <span>Export CSV</span>
-              </button>
-
-              <div className="flex items-center rounded-xl border border-gray-200 px-3 shadow-sm transition focus-within:ring-1 focus-within:ring-brand-mustard">
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  width="18"
-                  height="18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="mr-2 h-4 w-4 text-gray-400"
-                >
-                  <path
-                    d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 0 5.5 5.5"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+            <div className="mt-6 rounded-2xl border border-gray-100 bg-white/90 p-4 shadow-lg ring-1 ring-black/5">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center">
+                <div className="flex flex-1 items-center rounded-xl border border-gray-200 px-3 shadow-sm transition focus-within:ring-1 focus-within:ring-brand-mustard">
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    width="18"
+                    height="18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="mr-2 h-4 w-4 text-gray-400"
+                  >
+                    <path
+                      d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 0 5.5 5.5"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search Reservations"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    className="w-full border-none bg-transparent p-2 text-sm focus:outline-none"
                   />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Search reservations..."
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  className="w-full border-none bg-transparent p-2 text-sm focus:outline-none"
-                />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-4">
+                  <label
+                    htmlFor="hide-in"
+                    className={`flex items-center gap-2 text-xs ${canFilterByStatus ? "text-gray-700" : "text-gray-400"}`}
+                  >
+                    <input
+                      type="checkbox"
+                      id="hide-in"
+                      checked={hiddenStatuses.in}
+                      onChange={() => toggleHiddenStatus("in")}
+                      disabled={!canFilterByStatus}
+                      className="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green disabled:cursor-not-allowed disabled:opacity-40"
+                    />
+                    Hide "In"
+                  </label>
+
+                  <label
+                    htmlFor="hide-out"
+                    className={`flex items-center gap-2 text-xs ${canFilterByStatus ? "text-gray-700" : "text-gray-400"}`}
+                  >
+                    <input
+                      type="checkbox"
+                      id="hide-out"
+                      checked={hiddenStatuses.out}
+                      onChange={() => toggleHiddenStatus("out")}
+                      disabled={!canFilterByStatus}
+                      className="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green disabled:cursor-not-allowed disabled:opacity-40"
+                    />
+                    Hide "Out"
+                  </label>
+
+                  <button
+                    onClick={exportCSV}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-brand-green/80 bg-brand-green px-5 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-green/90 hover:shadow-lg"
+                  >
+                    <DownloadIcon />
+                    <span>Download CSV</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -417,7 +502,7 @@ export default function CheckinReportPage() {
                     >
                       {headers.map((header) => (
                         <td key={`${header}-${rowIndex}`} className="whitespace-nowrap border-t px-4 py-2 text-gray-800">
-                          {String(row?.[header] ?? "")}
+                          {formatCellValue(row?.[header])}
                         </td>
                       ))}
                     </tr>
@@ -425,10 +510,26 @@ export default function CheckinReportPage() {
                 </tbody>
               </table>
             </div>
-            <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-600">
               <span>
                 Showing {pagedData.length} of {filteredData.length} results
               </span>
+
+              <div className="flex items-center gap-2">
+                <span>Rows per page:</span>
+                <select
+                  value={pageSize}
+                  onChange={(event) => handlePageSizeChange(Number(event.target.value))}
+                  className="rounded-md border border-gray-300 p-1 text-sm focus:outline-none focus:ring-1 focus:ring-brand-mustard"
+                >
+                  {[10, 25, 50].map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {totalPages > 1 && (
                 <div className="flex items-center space-x-3">
                   <button

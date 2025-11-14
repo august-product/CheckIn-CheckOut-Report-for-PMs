@@ -16,3 +16,31 @@ body {
 main {
   min-height: 100vh;
 }
+
+.react-datepicker__header {
+  background-color: #2f7f5f !important;
+  border-bottom-color: #2f7f5f !important;
+  color: #fff !important;
+}
+
+.react-datepicker__current-month,
+.react-datepicker__day-name {
+  color: #fff !important;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected,
+.react-datepicker__day--in-range,
+.react-datepicker__day--in-selecting-range {
+  background-color: #3da176 !important;
+  border-color: #3da176 !important;
+  color: #fff !important;
+}
+
+.react-datepicker__day:hover,
+.react-datepicker__month-text:hover,
+.react-datepicker__quarter-text:hover,
+.react-datepicker__year-text:hover {
+  background-color: #d9f2e5 !important;
+  border-radius: 0.3rem;
+}
