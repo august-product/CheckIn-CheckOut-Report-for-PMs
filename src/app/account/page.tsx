@@ -46,14 +46,15 @@ export default function AccountPage() {
             style={{ filter: "brightness(0) invert(1)" }}
           />
 
-          <div className="flex items-center gap-6 text-sm font-semibold">
-            <Link href="/reports" className="transition hover:text-amber-200">
-              Reservation Reports
+          <div className="flex items-center gap-6 text-sm font-medium">
+            <Link href="/reports" className="header-nav-link transition hover:text-white/90">
+              Reservation Report
             </Link>
+            <span className="h-5 w-px bg-white/40" aria-hidden="true" />
             <button
               onClick={handleLogout}
               type="button"
-              className="text-left transition hover:text-amber-200"
+              className="text-left transition hover:text-white/90"
             >
               Log Out
             </button>

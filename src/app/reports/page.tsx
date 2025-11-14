@@ -382,13 +382,13 @@ export default function CheckinReportPage() {
             priority
           />
           <div className="flex items-center gap-6 text-sm font-medium">
-            <Link href="/account" className="transition hover:text-amber-200">
+            <Link href="/account" className="header-nav-link transition hover:text-white/90">
               {userDisplayName}
             </Link>
             <span className="h-5 w-px bg-white/40" aria-hidden="true" />
             <button
               onClick={handleLogout}
-              className="text-left transition hover:text-amber-200"
+              className="text-left transition hover:text-white/90"
               type="button"
             >
               Log Out

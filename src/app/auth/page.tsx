@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function AuthIndexPage() {
   return (
-    <main className="flex min-h-screen bg-[#f6f0e6] px-4 py-12 text-slate-900">
+    <main className="flex min-h-[900px] bg-[#f6f0e6] px-4 py-12 text-slate-900">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 lg:flex-row">
         <div className="flex-1 rounded-3xl border border-gray-200 bg-white shadow-xl ring-1 ring-black/5">
           <div className="border-b border-gray-100 px-8 py-6">

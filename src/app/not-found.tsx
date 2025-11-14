@@ -14,7 +14,7 @@ export default function NotFoundRedirect() {
   }, [router]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-[#f6f0e6] px-4 text-slate-900">
+    <main className="flex min-h-[900px] flex-col items-center justify-center bg-[#f6f0e6] px-4 text-slate-900">
       <div className="max-w-md text-center">
         <p className="text-sm font-semibold uppercase tracking-wider text-[#316354]">Page not found</p>
         <h1 className="mt-3 text-3xl font-semibold">Redirecting you to safety…</h1>

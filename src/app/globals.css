@@ -12,10 +12,6 @@ body {
   color: #0f172a;
 }
 
-main {
-  min-height: 100vh;
-}
-
 .react-datepicker__header {
   background-color: #465d50 !important;
   border-bottom-color: #465d50 !important;
@@ -42,4 +38,30 @@ main {
 .react-datepicker__year-text:hover {
   background-color: #d9f2e5 !important;
   border-radius: 0.3rem;
+}
+
+.header-nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.header-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.15rem;
+  height: 1px;
+  background-color: currentColor;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.header-nav-link:hover::after,
+.header-nav-link:focus-visible::after {
+  opacity: 1;
+  transform: scaleX(1);
 }

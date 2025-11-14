@@ -85,7 +85,7 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f6f0e6] px-4 py-12 text-slate-900">
+    <main className="min-h-[900px] bg-[#f6f0e6] px-4 py-12 text-slate-900">
       <header className="mx-auto flex max-w-6xl items-center justify-between border-b border-emerald-900/20 pb-6">
         <Link href="/" className="flex items-center gap-3 text-[#26483f]">
           <Image

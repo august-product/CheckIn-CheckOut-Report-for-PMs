@@ -14,9 +14,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-[#f6f0e6] text-slate-900">
-        <div className="flex min-h-screen flex-col">
+        <div className="flex min-h-[900px] flex-col">
           <div className="flex-1">{children}</div>
-          <footer className="border-t border-slate-200 bg-white/80 py-6 text-center text-sm text-[#304037]">
+          <footer className="bg-[#f6f0e6] py-6 text-center text-[0.6rem] leading-none text-[#a7adb7]">
             Copyright 2026, August Ltd.
           </footer>
         </div>
