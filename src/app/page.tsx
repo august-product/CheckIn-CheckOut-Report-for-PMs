@@ -33,6 +33,7 @@ const REGIONS = [
 ];
 
 const HIDDEN_COLUMNS = new Set(["timestamp"]);
+const END_COLUMNS = ["extras", "special_requests", "special requests"];
 
 const ReportIcon = () => (
   <svg
@@ -120,9 +121,30 @@ export default function CheckinReportPage() {
 
   const headers = useMemo(() => {
     if (!filteredData[0]) return [];
-    return Object.keys(filteredData[0]).filter(
+    const keys = Object.keys(filteredData[0]).filter(
       (key) => !HIDDEN_COLUMNS.has(key.toLowerCase())
     );
+
+    const normalized = [...keys];
+    const typeIndex = normalized.findIndex((key) => key.toLowerCase() === "type");
+
+    if (typeIndex >= 0) {
+      const [typeKey] = normalized.splice(typeIndex, 1);
+      const bookingIndex = normalized.findIndex((key) => key.toLowerCase() === "booking_id");
+      const nameIndex = normalized.findIndex((key) => key.toLowerCase() === "name");
+
+      let targetIndex = normalized.length;
+      if (bookingIndex >= 0) {
+        targetIndex = bookingIndex + 1;
+      } else if (nameIndex >= 0) {
+        targetIndex = nameIndex;
+      }
+      normalized.splice(Math.min(targetIndex, normalized.length), 0, typeKey);
+    }
+
+    const regular = normalized.filter((key) => !END_COLUMNS.includes(key.toLowerCase()));
+    const prioritizedEnd = normalized.filter((key) => END_COLUMNS.includes(key.toLowerCase()));
+    return [...regular, ...prioritizedEnd];
   }, [filteredData]);
 
   const sortedData = useMemo(() => {
