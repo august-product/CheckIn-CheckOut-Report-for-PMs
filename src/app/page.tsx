@@ -34,6 +34,60 @@ const REGIONS = [
 
 const HIDDEN_COLUMNS = new Set(["timestamp"]);
 
+const ReportIcon = () => (
+  <svg
+    aria-hidden="true"
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-4 w-4"
+  >
+    <path
+      d="M7 3h8l4 4v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M15 3v4h4"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M9 12h6M9 16h6M9 8h2"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const DownloadIcon = () => (
+  <svg
+    aria-hidden="true"
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-4 w-4"
+  >
+    <path
+      d="M12 4v10m0 0 4-4m-4 4-4-4M5 20h14"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 const normalizePayload = (payload: unknown): NormalizedPayload => {
   if (Array.isArray(payload)) return payload as ReportRow[];
   if (
@@ -259,9 +313,10 @@ export default function CheckinReportPage() {
               <button
                 onClick={fetchReport}
                 disabled={loading}
-                className="mt-2 w-full min-w-[220px] rounded-xl bg-gradient-to-r from-brand-mustard to-amber-400 px-8 py-3 text-center text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 md:mt-0 md:w-auto"
+                className="mt-2 flex w-full min-w-[220px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-mustard to-amber-400 px-8 py-3 text-center text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 md:mt-0 md:w-auto"
               >
-                {loading ? "Loading..." : "Generate Report"}
+                <ReportIcon />
+                <span>{loading ? "Loading..." : "Generate Report"}</span>
               </button>
             </div>
           </div>
@@ -270,18 +325,38 @@ export default function CheckinReportPage() {
             <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
               <button
                 onClick={exportCSV}
-                className="inline-flex items-center justify-center rounded-xl border border-brand-green/80 bg-brand-green px-5 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-green/90 hover:shadow-lg"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-brand-green/80 bg-brand-green px-5 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-green/90 hover:shadow-lg"
               >
-                Export CSV
+                <DownloadIcon />
+                <span>Export CSV</span>
               </button>
 
-              <input
-                type="text"
-                placeholder="Search reservations..."
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                className="w-full rounded-xl border border-gray-200 p-2 text-sm shadow-sm transition focus:outline-none focus:ring-1 focus:ring-brand-mustard"
-              />
+              <div className="flex items-center rounded-xl border border-gray-200 px-3 shadow-sm transition focus-within:ring-1 focus-within:ring-brand-mustard">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="mr-2 h-4 w-4 text-gray-400"
+                >
+                  <path
+                    d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 0 5.5 5.5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search reservations..."
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  className="w-full border-none bg-transparent p-2 text-sm focus:outline-none"
+                />
+              </div>
             </div>
           )}
         </div>
