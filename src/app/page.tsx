@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import dayjs from "dayjs";
 import DatePicker from "react-datepicker";
@@ -35,6 +35,7 @@ const REGIONS = [
 
 const HIDDEN_COLUMNS = new Set(["timestamp"]);
 const END_COLUMNS = ["extras", "special_requests", "special requests"];
+const YEAR_KEY_HINTS = ["check_in", "checkin", "start_date", "startdate", "arrival", "date"];
 
 const ReportIcon = () => (
   <svg
@@ -179,12 +180,37 @@ export default function CheckinReportPage() {
     return sortedData.slice(start, start + pageSize);
   }, [sortedData, page, pageSize]);
 
-  const formatCellValue = useCallback((value: unknown) => {
+  const formatCellValue = useCallback((header: string, value: unknown) => {
     const text = String(value ?? "");
     if (!text) return "";
     if (text.trim().toLowerCase() === "homeowner") return "Homeowner";
+    if (header.toLowerCase() === "property") {
+      return text.toUpperCase();
+    }
     return text;
   }, []);
+
+  const getRowYear = useCallback((row: ReportRow) => {
+    for (const key of Object.keys(row)) {
+      const lowerKey = key.toLowerCase();
+      if (!YEAR_KEY_HINTS.some((hint) => lowerKey.includes(hint))) continue;
+      const value = row[key];
+      const parsed = dayjs(String(value));
+      if (parsed.isValid()) {
+        return parsed.format("YYYY");
+      }
+    }
+    return null;
+  }, []);
+
+  const hasMultipleYears = useMemo(() => {
+    const years = new Set<string>();
+    pagedData.forEach((row) => {
+      const year = getRowYear(row);
+      if (year) years.add(year);
+    });
+    return years.size > 1;
+  }, [pagedData, getRowYear]);
 
   const toggleHiddenStatus = (status: "in" | "out") => {
     setHiddenStatuses((prev) => ({
@@ -338,7 +364,7 @@ export default function CheckinReportPage() {
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-gray-800">Reservation Report</h2>
             <p className="text-sm text-gray-500">
-              Filter by date range and region, then export the results as CSV.
+              Create a Reservation Report by using the Region, Check In & Check Out dates. Use the search field to filter the search results. Download a CSV, if needed.
             </p>
           </div>
 
@@ -441,7 +467,7 @@ export default function CheckinReportPage() {
                       checked={hiddenStatuses.in}
                       onChange={() => toggleHiddenStatus("in")}
                       disabled={!canFilterByStatus}
-                      className="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green disabled:cursor-not-allowed disabled:opacity-40"
+                      className="h-4 w-4 rounded border-gray-300 text-[#316354] focus:ring-[#316354] accent-[#316354] disabled:cursor-not-allowed disabled:opacity-40"
                     />
                     Hide &quot;In&quot;
                   </label>
@@ -456,7 +482,7 @@ export default function CheckinReportPage() {
                       checked={hiddenStatuses.out}
                       onChange={() => toggleHiddenStatus("out")}
                       disabled={!canFilterByStatus}
-                      className="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green disabled:cursor-not-allowed disabled:opacity-40"
+                      className="h-4 w-4 rounded border-gray-300 text-[#316354] focus:ring-[#316354] accent-[#316354] disabled:cursor-not-allowed disabled:opacity-40"
                     />
                     Hide &quot;Out&quot;
                   </label>
@@ -491,7 +517,9 @@ export default function CheckinReportPage() {
                         onClick={() => handleSort(key)}
                       >
                         <div className="flex items-center space-x-2">
-                          <span>{key.replace(/_/g, " ")}</span>
+                          <span>
+                            {key.replace(/_/g, " ").replace(/^property$/i, "PROPERTY")}
+                          </span>
                           {sortConfig.key === key && <span>{sortConfig.direction === "asc" ? "▲" : "▼"}</span>}
                         </div>
                       </th>
@@ -499,18 +527,35 @@ export default function CheckinReportPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pagedData.map((row, rowIndex) => (
-                    <tr
-                      key={`row-${rowIndex}`}
-                      className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                    >
-                      {headers.map((header) => (
-                        <td key={`${header}-${rowIndex}`} className="whitespace-nowrap border-t px-4 py-2 text-gray-800">
-                          {formatCellValue(row?.[header])}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
+                  {(() => {
+                    let previousYear: string | null = null;
+                    return pagedData.map((row, rowIndex) => {
+                      const year = hasMultipleYears ? getRowYear(row) : null;
+                      const showYearRow = Boolean(year && year !== previousYear);
+                      if (year) {
+                        previousYear = year;
+                      }
+
+                      return (
+                        <Fragment key={`row-group-${rowIndex}`}>
+                          {showYearRow && (
+                            <tr className="bg-gray-100">
+                              <td colSpan={headers.length} className="px-4 py-2 text-xs font-semibold uppercase text-gray-500">
+                                {year}
+                              </td>
+                            </tr>
+                          )}
+                          <tr className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                            {headers.map((header) => (
+                              <td key={`${header}-${rowIndex}`} className="whitespace-nowrap border-t px-4 py-2 text-gray-800">
+                                {formatCellValue(header, row?.[header])}
+                              </td>
+                            ))}
+                          </tr>
+                        </Fragment>
+                      );
+                    });
+                  })()}
                 </tbody>
               </table>
             </div>

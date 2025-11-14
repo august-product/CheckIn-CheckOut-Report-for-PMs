@@ -18,8 +18,8 @@ main {
 }
 
 .react-datepicker__header {
-  background-color: #2f7f5f !important;
-  border-bottom-color: #2f7f5f !important;
+  background-color: #465d50 !important;
+  border-bottom-color: #465d50 !important;
   color: #fff !important;
 }
 
@@ -32,8 +32,8 @@ main {
 .react-datepicker__day--keyboard-selected,
 .react-datepicker__day--in-range,
 .react-datepicker__day--in-selecting-range {
-  background-color: #3da176 !important;
-  border-color: #3da176 !important;
+  background-color: #405549 !important;
+  border-color: #405549 !important;
   color: #fff !important;
 }
 
