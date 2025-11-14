@@ -32,6 +32,8 @@ const REGIONS = [
   "Paris"
 ];
 
+const HIDDEN_COLUMNS = new Set(["timestamp"]);
+
 const normalizePayload = (payload: unknown): NormalizedPayload => {
   if (Array.isArray(payload)) return payload as ReportRow[];
   if (
@@ -62,7 +64,12 @@ export default function CheckinReportPage() {
   const [page, setPage] = useState(1);
   const pageSize = 12;
 
-  const headers = useMemo(() => (filteredData[0] ? Object.keys(filteredData[0]) : []), [filteredData]);
+  const headers = useMemo(() => {
+    if (!filteredData[0]) return [];
+    return Object.keys(filteredData[0]).filter(
+      (key) => !HIDDEN_COLUMNS.has(key.toLowerCase())
+    );
+  }, [filteredData]);
 
   const sortedData = useMemo(() => {
     if (!sortConfig.key) return filteredData;
@@ -184,9 +191,6 @@ export default function CheckinReportPage() {
             className="h-6 w-auto"
             style={{ filter: "brightness(0) invert(1)" }}
           />
-          <span className="ml-4 text-sm font-semibold tracking-wide text-white/80">
-            Check-In / Check-Out Dashboard
-          </span>
         </div>
       </nav>
 
