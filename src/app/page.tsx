@@ -251,7 +251,7 @@ export default function CheckinReportPage() {
       <section className="mx-auto max-w-7xl p-6">
         <div className="mb-6 rounded-2xl border border-gray-100 bg-white/80 p-6 shadow-lg ring-1 ring-black/5">
           <div className="mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">Generate Reservation Report</h2>
+            <h2 className="text-lg font-semibold text-gray-800">Reservation Report</h2>
             <p className="text-sm text-gray-500">
               Filter by date range and region, then export the results as CSV.
             </p>
@@ -267,7 +267,9 @@ export default function CheckinReportPage() {
                 onChange={(event) => setRegion(event.target.value)}
                 className="w-full rounded-md border border-gray-300 p-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
               >
-                <option value="">All Regions</option>
+                <option value="" disabled>
+                  Select region
+                </option>
                 {REGIONS.map((option) => (
                   <option key={option} value={option}>
                     {option}
@@ -313,10 +315,10 @@ export default function CheckinReportPage() {
               <button
                 onClick={fetchReport}
                 disabled={loading}
-                className="mt-2 flex w-full min-w-[220px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-mustard to-amber-400 px-8 py-3 text-center text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 md:mt-0 md:w-auto"
+                className="mt-2 flex w-full min-w-[320px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-mustard to-amber-400 px-12 py-3 text-center text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 md:mt-0 md:w-auto"
               >
                 <ReportIcon />
-                <span>{loading ? "Loading..." : "Generate Report"}</span>
+                <span>{loading ? "Loading..." : "Generate Reservation Report"}</span>
               </button>
             </div>
           </div>
